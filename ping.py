@@ -206,6 +206,7 @@
 
 #=============================================================================#
 import argparse
+from hashlib import md5
 import os, sys, socket, struct, select, time, signal
 
 __description__ = 'A pure python ICMP ping implementation using raw sockets.'
@@ -302,7 +303,7 @@ def do_one(myStats, destIP, hostname, timeout, mySeqNumber, packet_size, quiet =
         print("failed. (socket error: '%s')" % e.args[1])
         raise # raise the original error
 
-    my_ID = os.getpid() & 0xFFFF
+    my_ID = int(md5(destIP.encode('utf-8')).hexdigest()[:4], 16)
 
     sentTime = send_one_ping(mySocket, destIP, my_ID, mySeqNumber, packet_size)
     if sentTime == None:
@@ -329,7 +330,8 @@ def do_one(myStats, destIP, hostname, timeout, mySeqNumber, packet_size, quiet =
             myStats.maxTime = delay
     else:
         delay = None
-        print("Request timed out.")
+        if not quiet:
+            print("Request timed out.")
 
     return delay
 
@@ -570,3 +572,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+
